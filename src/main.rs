@@ -1,6 +1,4 @@
 use swayipc::{Connection, Output};
-// use serde::Serialize;
-// use serde_json::json;
 
 const BUILTIN_OUTPUT_NAME: &str = "eDP-1";
 

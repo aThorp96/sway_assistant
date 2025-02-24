@@ -4,7 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.96"
-serde = "1.0.218"
-serde_json = "1.0.139"
 swayipc = "3.0.3"
