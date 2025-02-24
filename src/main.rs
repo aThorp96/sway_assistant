@@ -6,7 +6,7 @@ enum Orientation {
     Above,
     Below,
     Left,
-    Right
+    Right,
 }
 
 struct Display {
@@ -19,7 +19,7 @@ struct Display {
 
 impl Display {
     fn new(output: &Output) -> Display {
-        Display{
+        Display {
             output: (*output).clone(),
             x: output.rect.x,
             y: output.rect.y,
@@ -46,39 +46,38 @@ impl Display {
             self_y_offset = (other.height - self.height) / 2;
         }
 
-		match orientation {
-    		Orientation::Below => {
-        		other.x = other_y_offset;
-        		other.y = 0;
-        		self.x = self_x_offset;
-        		self.y = other.height;
-    		},
-    		Orientation::Above => {
-        		other.x = other_x_offset;
-        		other.y = self.height;
-        		self.x = self_x_offset;
-        		self.y = 0;
-    		}
-    		Orientation::Right => {
-        		other.x = 0;
-        		other.y = other_y_offset;
-        		self.x = other.width;
-        		self.y = self_y_offset;
-    		}
-    		Orientation::Left => {
-        		other.x = self.width;
-        		other.y = other_y_offset;
-        		self.x = 0;
-        		self.y = self_y_offset;
-    		}
-		}
+        match orientation {
+            Orientation::Below => {
+                other.x = other_y_offset;
+                other.y = 0;
+                self.x = self_x_offset;
+                self.y = other.height;
+            }
+            Orientation::Above => {
+                other.x = other_x_offset;
+                other.y = self.height;
+                self.x = self_x_offset;
+                self.y = 0;
+            }
+            Orientation::Right => {
+                other.x = 0;
+                other.y = other_y_offset;
+                self.x = other.width;
+                self.y = self_y_offset;
+            }
+            Orientation::Left => {
+                other.x = self.width;
+                other.y = other_y_offset;
+                self.x = 0;
+                self.y = self_y_offset;
+            }
+        }
     }
 
     fn to_command_str(&self) -> String {
         let cmd = format!("output {} pos {} {}", self.output.name, self.x, self.y);
         println!("{}", cmd);
         cmd
-
     }
 }
 
@@ -89,20 +88,27 @@ fn main() {
         return;
     }
 
-	// TODO: Accept from input or config
+    // TODO: Accept from input or config
     let orientation = Orientation::Below;
 
-    let main_output = outputs.iter().find(|output| { output.name == BUILTIN_OUTPUT_NAME} ).ok_or(format!("No output found with name {}", BUILTIN_OUTPUT_NAME)).unwrap();
-    let secondary_output = outputs.iter().find(|output| { output.name != BUILTIN_OUTPUT_NAME} ).unwrap();
+    let main_output = outputs
+        .iter()
+        .find(|output| output.name == BUILTIN_OUTPUT_NAME)
+        .ok_or(format!("No output found with name {}", BUILTIN_OUTPUT_NAME))
+        .unwrap();
+    let secondary_output = outputs
+        .iter()
+        .find(|output| output.name != BUILTIN_OUTPUT_NAME)
+        .unwrap();
 
     let mut main_display = Display::new(main_output);
     let mut secondary_display = Display::new(secondary_output);
 
     main_display.place(orientation, &mut secondary_display);
 
-	[main_display, secondary_display].into_iter().for_each(|display| {
-    	println!("{:?}", connection.run_command(display.to_command_str()));
-	});
-
-
+    [main_display, secondary_display]
+        .into_iter()
+        .for_each(|display| {
+            println!("{:?}", connection.run_command(display.to_command_str()));
+        });
 }
