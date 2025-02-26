@@ -100,9 +100,8 @@ fn arange_outputs(main_output_name: &str, orientation: Orientation, secondary_ou
 
     let main_output = outputs
         .iter()
-        .find(|output| output.name == BUILTIN_OUTPUT_NAME)
-        .ok_or(format!("No output found with name {}", main_output_name))
-        .unwrap();
+        .find(|output| output.name == main_output_name)
+        .expect("No main output found");
     let secondary_output = outputs
         .iter()
         .find(|output| {
@@ -121,7 +120,7 @@ fn arange_outputs(main_output_name: &str, orientation: Orientation, secondary_ou
     [main_display, secondary_display]
         .into_iter()
         .for_each(|display| {
-            println!("{:?}", connection.run_command(display.to_command_str()));
+            connection.run_command(display.to_command_str()).expect("Error setting output") ;
         });
 }
 
