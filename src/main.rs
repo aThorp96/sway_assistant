@@ -91,7 +91,11 @@ impl Display {
     }
 }
 
-fn arange_outputs(main_output_name: &str, orientation: Orientation, secondary_output_name: Option<&str>) {
+fn arange_outputs(
+    main_output_name: &str,
+    orientation: Orientation,
+    secondary_output_name: Option<&str>,
+) {
     let mut connection = Connection::new().expect("Error creating connection");
     let outputs = connection.get_outputs().expect("Error getting outputs");
     if outputs.len() <= 1 {
@@ -104,11 +108,9 @@ fn arange_outputs(main_output_name: &str, orientation: Orientation, secondary_ou
         .expect("No main output found");
     let secondary_output = outputs
         .iter()
-        .find(|output| {
-            match secondary_output_name {
-                Some(name) => output.name == name,
-                None => output.name != main_output_name
-            }
+        .find(|output| match secondary_output_name {
+            Some(name) => output.name == name,
+            None => output.name != main_output_name,
         })
         .unwrap();
 
@@ -120,7 +122,9 @@ fn arange_outputs(main_output_name: &str, orientation: Orientation, secondary_ou
     [main_display, secondary_display]
         .into_iter()
         .for_each(|display| {
-            connection.run_command(display.to_command_str()).expect("Error setting output") ;
+            connection
+                .run_command(display.to_command_str())
+                .expect("Error setting output");
         });
 }
 
@@ -136,12 +140,12 @@ mod tests {
 
     fn mock_output(name: &str, width: i32, height: i32) -> Output {
         serde_json::from_value(json!({
-			"name": name,
-			"current_mode": {
-    			"width": width,
-				"height": height,
-				"refresh": 0,
-			},
+            "name": name,
+            "current_mode": {
+                "width": width,
+                "height": height,
+                "refresh": 0,
+            },
             "make": "fake",
             "model": "fake",
             "serial": "",
@@ -156,7 +160,8 @@ mod tests {
                 "height": height,
             },
 
-        })).unwrap()
+        }))
+        .unwrap()
     }
 
     #[test]
@@ -178,7 +183,10 @@ mod tests {
 
         main_display.place(Orientation::Above, &mut secondary_display);
 
-        assert_eq!(main_display.x, (secondary_display.width - main_display.width) / 2);
+        assert_eq!(
+            main_display.x,
+            (secondary_display.width - main_display.width) / 2
+        );
         assert_eq!(main_display.y, 0);
         assert_eq!(secondary_display.x, 0);
         assert_eq!(secondary_display.y, main_display.height);
@@ -194,6 +202,9 @@ mod tests {
         main_display.place(Orientation::Above, &mut secondary_display);
 
         assert_eq!(main_display.to_command_str(), "output main_test pos 50 0");
-        assert_eq!(secondary_display.to_command_str(), "output secondary_test pos 0 100");
+        assert_eq!(
+            secondary_display.to_command_str(),
+            "output secondary_test pos 0 100"
+        );
     }
 }
