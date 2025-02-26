@@ -1,9 +1,11 @@
 use std::cmp::Ordering;
 
+use clap::{Parser, ValueEnum};
 use swayipc::{Connection, Output};
 
 const BUILTIN_OUTPUT_NAME: &str = "eDP-1";
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum Orientation {
     Above,
     Below,
@@ -91,10 +93,10 @@ impl Display {
     }
 }
 
-fn arange_outputs(
-    main_output_name: &str,
+fn arrange_outputs(
+    main_output_name: String,
     orientation: Orientation,
-    secondary_output_name: Option<&str>,
+    secondary_output_name: Option<String>,
 ) {
     let mut connection = Connection::new().expect("Error creating connection");
     let outputs = connection.get_outputs().expect("Error getting outputs");
@@ -102,22 +104,22 @@ fn arange_outputs(
         return;
     }
 
-    let main_output = outputs
+    let mut main_display = outputs
         .iter()
-        .find(|output| output.name == main_output_name)
-        .expect("No main output found");
-    let secondary_output = outputs
+        .find(|o| o.name == main_output_name && o.active)
+        .map(Display::new)
+        .expect("No main output found!");
+    let mut secondary_display = outputs
         .iter()
-        .find(|output| match secondary_output_name {
-            Some(name) => output.name == name,
-            None => output.name != main_output_name,
+        .find(|o| {
+            o.name != main_output_name
+                && secondary_output_name.as_ref().is_none_or(|n| o.name != *n)
+                && o.active
         })
-        .unwrap();
+        .map(Display::new)
+        .expect("No secondary output found!");
 
-    let mut main_display = Display::new(main_output);
-    let mut secondary_display = Display::new(secondary_output);
-
-    secondary_display.place(orientation, &mut main_display);
+    main_display.place(orientation, &mut secondary_display);
 
     [main_display, secondary_display]
         .into_iter()
@@ -128,8 +130,30 @@ fn arange_outputs(
         });
 }
 
+#[derive(Parser)]
+#[command(name = "arrange_outputs")]
+#[command(author, version, about)]
+struct Cli {
+    /// The orientation of the secondary output with respect to the primary output
+    #[arg(value_enum)]
+    orientation: Orientation,
+
+    /// The output which is the focus of the orientation
+    #[arg(default_value = BUILTIN_OUTPUT_NAME, short = 'p', long = "primary")]
+    primary_output_name: String,
+
+    /// The output which is the subject of orientation
+    #[arg(default_value = None, short = 's', long = "secondary")]
+    secondary_output_name: Option<String>,
+}
+
 fn main() {
-    arange_outputs(BUILTIN_OUTPUT_NAME, Orientation::Below, None);
+    let cli = Cli::parse();
+    arrange_outputs(
+        cli.primary_output_name,
+        cli.orientation,
+        cli.secondary_output_name,
+    );
 }
 
 #[cfg(test)]
