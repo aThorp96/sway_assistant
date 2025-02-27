@@ -9,17 +9,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: "x86_64-unknown-linux-gnu"
       - name: Build
         run: |
-          cargo build --release --target x86_64-unknown-linux-gnu --target-dir .
+          cargo build --release
           mkdir -p sway_assistant_${{ github.event.release.tag_name }}_linux/
-          mv release/sway_assistant sway_assistant_${{ github.event.release.tag_name }}_linux/
+          mv target/release/sway_assistant sway_assistant_${{ github.event.release.tag_name }}_linux/
           cd sway_assistant_${{ github.event.release.tag_name }}_linux/
           sha256sum sway_assistant > sway_assistant.sha256.sum
           cd ..
-          tar cvjf sway_assistant_${{ github.event.release.tag_name }}_linux.tar.bz2 sway_assistant_${{ github.event.release.tag_name }}_linux/      - name: Upload
+          tar cvjf sway_assistant_${{ github.event.release.tag_name }}_linux.tar.bz2 sway_assistant_${{ github.event.release.tag_name }}_linux/
       - uses: softprops/action-gh-release@v1
         with:
           files: sway_assistant_${{ github.event.release.tag_name }}_linux.tar.bz2
