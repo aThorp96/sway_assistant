@@ -9,11 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: "x86_64-unknown-linux-gnu"
       - name: Build
         run: |
-          cargo build --release --target x86_64-unknown-linux-gnu --target-dir .
+          cargo build --release
           mkdir -p sway_assistant_${{ github.event.release.tag_name }}_linux/
           mv release/sway_assistant sway_assistant_${{ github.event.release.tag_name }}_linux/
           cd sway_assistant_${{ github.event.release.tag_name }}_linux/
