@@ -5,7 +5,7 @@ use swayipc::{Connection, Output};
 
 const BUILTIN_OUTPUT_NAME: &str = "eDP-1";
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 enum Orientation {
     Above,
     Below,
@@ -33,6 +33,8 @@ impl Display {
     }
 
     fn place(&mut self, orientation: Orientation, other: &mut Display) {
+        println!("Placing {} {:?} {}", self.output.name, orientation, other.output.name);
+
         let mut other_x_offset = 0;
         let mut other_y_offset = 0;
         let mut self_x_offset = 0;
@@ -60,7 +62,7 @@ impl Display {
 
         match orientation {
             Orientation::Below => {
-                other.x = other_y_offset;
+                other.x = other_x_offset;
                 other.y = 0;
                 self.x = self_x_offset;
                 self.y = other.height;
@@ -104,7 +106,7 @@ fn arrange_outputs(
         return;
     }
 
-    let mut main_display = outputs
+    let mut primary_display = outputs
         .iter()
         .find(|o| o.name == main_output_name && o.active)
         .map(Display::new)
@@ -113,15 +115,14 @@ fn arrange_outputs(
         .iter()
         .find(|o| {
             o.name != main_output_name
-                && secondary_output_name.as_ref().is_none_or(|n| o.name != *n)
-                && o.active
+                && secondary_output_name.as_ref().is_none_or(|n| o.name == *n)
         })
         .map(Display::new)
         .expect("No secondary output found!");
 
-    main_display.place(orientation, &mut secondary_display);
+    secondary_display.place(orientation, &mut primary_display);
 
-    [main_display, secondary_display]
+    [primary_display, secondary_display]
         .into_iter()
         .for_each(|display| {
             connection
@@ -200,20 +201,61 @@ mod tests {
 
     #[test]
     fn display_placement() {
+        struct TestCase {
+            orientation: Orientation,
+            primary_x: i32,
+            primary_y: i32,
+            secondary_x: i32,
+            secondary_y: i32
+        }
+
         let output1 = mock_output("main_test", 100, 100);
         let output2 = mock_output("secondary_test", 200, 200);
-        let mut main_display = Display::new(&output1);
+        let mut primary_display = Display::new(&output1);
         let mut secondary_display = Display::new(&output2);
 
-        main_display.place(Orientation::Above, &mut secondary_display);
+        let test_cases = [
+            TestCase{
+                orientation: Orientation::Above,
+                primary_x: (secondary_display.width - primary_display.width) / 2,
+                primary_y: 0,
+                secondary_x: 0,
+                secondary_y: primary_display.height,
+            },
+            TestCase{
+                orientation: Orientation::Below,
+                primary_x: (secondary_display.width - primary_display.width) / 2,
+                primary_y: secondary_display.height,
+                secondary_x: 0,
+                secondary_y: 0,
+            },
+            TestCase{
+                orientation: Orientation::Left,
+                primary_x: 0,
+                primary_y: (secondary_display.height - primary_display.height) / 2,
+                secondary_x: primary_display.width,
+                secondary_y: 0,
+            },
+            TestCase{
+                orientation: Orientation::Right,
+                primary_x: secondary_display.height,
+                primary_y: (secondary_display.height - primary_display.height) / 2,
+                secondary_x: 0,
+                secondary_y: 0,
+            }
+        ];
 
-        assert_eq!(
-            main_display.x,
-            (secondary_display.width - main_display.width) / 2
-        );
-        assert_eq!(main_display.y, 0);
-        assert_eq!(secondary_display.x, 0);
-        assert_eq!(secondary_display.y, main_display.height);
+        test_cases.iter().for_each(|test_case| {
+            primary_display.place(test_case.orientation, &mut secondary_display);
+
+            assert_eq!(
+                primary_display.x,
+                test_case.primary_x
+            );
+            assert_eq!(primary_display.y, test_case.primary_y);
+            assert_eq!(secondary_display.x, test_case.secondary_x);
+            assert_eq!(secondary_display.y, test_case.secondary_y);
+        });
     }
 
     #[test]
