@@ -16,7 +16,7 @@ export WLR_HEADLESS_OUTPUTS=2
 sway 2>/dev/null &
 echo "=> Sway session started with PID $!"
 # Clean up the sway session on exit
-trap "echo '=> cleaning sway session' && swaymsg exit || exit" EXIT
+trap "echo '=> cleaning sway session' && swaymsg exit || exit 0" EXIT
 
 # Give sway time to start
 sleep 1

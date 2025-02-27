@@ -1,11 +1,13 @@
 [package]
 name = "sway_assistant"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 description = "CLI to arrange two monitors in Sway"
 authors = ["Andrew Thorp <andrew.thorp.dev@gmail.com>"]
 
 [dependencies]
 clap = { version = "4.5.31", features = ["derive"] }
-serde_json = "1.0.139"
 swayipc = "3.0.3"
+
+[dev-dependencies]
+serde_json = "1.0.139"

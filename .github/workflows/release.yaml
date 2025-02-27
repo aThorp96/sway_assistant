@@ -1,0 +1,26 @@
+name: Release
+on:
+  release:
+    types: [published, edited]
+jobs:
+  build-and-upload:
+    name: Build and Upload
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "x86_64-unknown-linux-gnu"
+      - name: Build
+        run: |
+          cargo build --release --target x86_64-unknown-linux-gnu --target-dir .
+          mkdir -p sway_assistant_${{ github.event.release.tag_name }}_linux/
+          mv target/release/sway_assistant sway_assistant_${{ github.event.release.tag_name }}_linux/
+          cd sway_assistant_${{ github.event.release.tag_name }}_linux/
+          sha256sum sway_assistant > sway_assistant.sha256.sum
+          cd ..
+          tar cvjf sway_assistant_${{ github.event.release.tag_name }}_linux.tar.bz2 sway_assistant_${{ github.event.release.tag_name }}_linux/      - name: Upload
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: sway_assistant_${{ github.event.release.tag_name }}_linux.tar.bz2
