@@ -139,6 +139,7 @@ fn arrange_outputs(
         });
 }
 
+/// Select some outputs adn arrange tehm accordingly
 #[derive(Parser)]
 #[command(name = "arrange_outputs")]
 #[command(author, version, about)]
