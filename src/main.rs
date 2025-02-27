@@ -84,7 +84,7 @@ impl Display {
             }
             Orientation::Left => {
                 other.x = self.width;
-                other.y = other_y_offset;
+                other.y = other_x_offset;
                 self.x = 0;
                 self.y = self_y_offset;
             }
@@ -108,6 +108,11 @@ fn arrange_outputs(
     if outputs.len() <= 1 {
         return;
     }
+
+
+
+
+
 
     let mut primary_display = outputs
         .iter()
